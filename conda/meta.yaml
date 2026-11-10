@@ -1,0 +1,47 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: ts-criopy
+  version: {{ data.get('version') }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  script: {{PYTHON}} -m pip install --no-deps --ignore-installed .
+  string: "py{{ PY_VER | replace('.', '') }}{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
+  entry_points:
+    - VMSlogger = lsst.ts.criopy.Vmslogger:run
+
+test:
+  requires:
+    - pytest
+    - ts-conda-build =0.5
+  source_files:
+    - pyproject.toml
+    - python
+    - tests
+  commands:
+    - pytest
+
+requirements:
+  host:
+    - pip
+    - python {{python}}
+    - setuptools 
+    - setuptools_scm
+    - xorg-libxfixes # [linux]
+  run:
+    - python {{python}}
+    - numpy
+    - astropy
+    - h5py
+    - pyside6
+    - qasync
+    - ts-m1m3-utils
+    - ts-xml
+    - ts-salobj
+    - lsst-efd-client
+    - pandas
+    - pyyaml
