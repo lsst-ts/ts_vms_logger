@@ -12,7 +12,7 @@ build:
   script: {{PYTHON}} -m pip install --no-deps --ignore-installed .
   string: "py{{ PY_VER | replace('.', '') }}{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
   entry_points:
-    - VMSlogger = lsst.ts.criopy.Vmslogger:run
+    - VMSlogger = lsst.ts.vms.logger.vmslogger:run
 
 test:
   requires:
@@ -37,11 +37,7 @@ requirements:
     - numpy
     - astropy
     - h5py
-    - pyside6
-    - qasync
     - ts-m1m3-utils
-    - ts-xml
     - ts-salobj
-    - lsst-efd-client
     - pandas
     - pyyaml
