@@ -25,3 +25,4 @@ except ImportError:
     __version__ = "?"
 
 from .collector import VMS_DEVICES, Collector
+from .s3_synchronizer import S3Synchronizer
