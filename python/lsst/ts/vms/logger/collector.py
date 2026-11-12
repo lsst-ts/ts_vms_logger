@@ -32,6 +32,9 @@ import numpy as np
 
 from lsst.ts.m1m3.utils.cache import Cache
 from lsst.ts.salobj import BaseMsgType, Domain, Remote
+from lsst.ts.utils import make_done_future
+
+from .s3_synchronizer import S3Synchronizer
 
 __all__ = ["Collector", "VMS_DEVICES"]
 
@@ -82,6 +85,8 @@ class Collector:
         daemonized: bool = False,
         rotate: float | None = None,
         rotate_offset: float = 0,
+        synchronizer: S3Synchronizer | None = None,
+        delete_after_sync: bool = False,
     ):
         self.log = logging.getLogger("VMSlogger")
 
@@ -96,8 +101,12 @@ class Collector:
         self.daemonized = daemonized
         self.rotate = rotate
         self.rotate_offset = rotate_offset
+        self.synchronizer = synchronizer
+        self.delete_after_sync = delete_after_sync
+
         self.next_rotate: float | None = None
         self.h5file = None
+        self.synchronizer_task = make_done_future()
 
         self._bar_index = 0
         self._last_bar = 0
@@ -309,6 +318,17 @@ class Collector:
                     ts = time.localtime(self._current_file_date)
                     self._create_file(datetime(*ts[:6]))
                     await self._sample_file()
+
+                    if self.synchronizer is not None:
+                        if not self.synchronizer_task.done():
+                            raise RuntimeError(
+                                "Synchronizer still running when new file shall by synchronized!"
+                            )
+
+                        self.synchronizer_task = asyncio.create_task(
+                            self.synchronizer.sync_directory(self.delete_after_sync)
+                        )
+
                     if single_shot:
                         break
 

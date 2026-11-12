@@ -37,7 +37,8 @@ requirements:
     - numpy
     - astropy
     - h5py
+    - pandas
+    - pydantic
+    - pyyaml
     - ts-m1m3-utils
     - ts-salobj
-    - pandas
-    - pyyaml

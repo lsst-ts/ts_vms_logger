@@ -13,6 +13,7 @@ dynamic = ["version"]
 dependencies = [
   "h5py",
   "matplotlib",
+  "pydantic",
   "ts_m1m3_utils",
   "ts_salobj",
 ]

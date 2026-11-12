@@ -32,7 +32,9 @@ import typing
 from lsst.ts.m1m3.utils import parse_duration
 
 from .collector import VMS_DEVICES, Collector
+from .configuration import Configuration, load_configuration
 from .exit_error_codes import ExitErrorCodes
+from .s3_synchronizer import S3Synchronizer
 
 try:
     importlib.import_module("h5py")
@@ -61,6 +63,7 @@ parser.add_argument(
 parser.add_argument(
     "-5",
     dest="h5py",
+    default=None,
     action="store_true",
     help=("save into HDF 5. Requires h5py (pip install h5py). Save to CSV if not provided."),
 )
@@ -100,10 +103,13 @@ parser.add_argument(
     help="quit after recording single file (with -s records)",
 )
 parser.add_argument(
+    "--config-file", actio="store", dest="config_file", type=str, default=None, help="Configuration file"
+)
+parser.add_argument(
     "--template",
     action="store",
     dest="template",
-    default="${name}_%Y-%m-%dT%H:%M:%S.${ext}",
+    default=None,
     type=str,
     help=(
         "template used to construct output file path. Default to"
@@ -158,13 +164,20 @@ parser.add_argument(
 )
 
 
-async def main(args: typing.Any, pipe: typing.Any = None) -> None:
+async def main(args: typing.Any, configuration: Configuration | None, pipe: typing.Any = None) -> None:
     logger = logging.getLogger("VMSlogger")
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     ch.setFormatter(formatter)
+
+    if configuration is not None:
+        args.workdir = configuration.logger.workdir if args.workdir is None else args.workdir
+        args.h5py = configuration.logger.h5py if args.h5py is None else args.h5py
+        args.template = configuration.logger.template if args.template is None else args.template
+        if configuration.logger.rotate is not None and args.rotate is None:
+            args.rotate = parse_duration(configuration.logger.rotate)
 
     if args.workdir is not None:
         try:
@@ -228,6 +241,22 @@ async def main(args: typing.Any, pipe: typing.Any = None) -> None:
 
     for d in args.devices:
         logger.info(f"Collecting {d} - template {args.template}")
+
+        if configuration is None:
+            synchronizer = None
+            delete_after_sync = False
+        else:
+            synchronizer = S3Synchronizer(
+                args.workdir,
+                configuration.s3.bucket_name,
+                configuration.s3.prefix,
+                args.rotate
+                if configuration.s3.time_window == ""
+                else parse_duration(configuration.s3.time_window),
+                configuration.s3.profile,
+            )
+            delete_after_sync = configuration.s3.delete
+
         c = Collector(
             VMS_DEVICES.index(d),
             args.template,
@@ -238,6 +267,8 @@ async def main(args: typing.Any, pipe: typing.Any = None) -> None:
             args.daemon,
             args.rotate,
             args.rotate_offset,
+            synchronizer,
+            delete_after_sync,
         )
         collectors.append(c)
         tasks.append(asyncio.create_task(c.collect_data(args.single_shot)))
@@ -257,6 +288,12 @@ async def main(args: typing.Any, pipe: typing.Any = None) -> None:
 
 def run() -> None:
     args = parser.parse_args()
+
+    if args.config_file is not None:
+        configuration = load_configuration(args.config_file)
+    else:
+        configuration = None
+
     if sys.platform == "linux" and args.daemon:
         r_pipe, w_pipe = os.pipe2(os.O_NONBLOCK)  # type: ignore
         child = os.fork()
@@ -271,7 +308,7 @@ def run() -> None:
             os.dup(dn)
 
             try:
-                asyncio.run(main(args, pipe=w_pipe))
+                asyncio.run(main(args, configuration, pipe=w_pipe))
             except RuntimeError as re:
                 print(str(re))
         else:
@@ -284,4 +321,4 @@ def run() -> None:
             print("Returned: ", ret)
             sys.exit(ExitErrorCodes.VMSLOGGER_SUBPROCESS_STARTUP)
     else:
-        asyncio.run(main(args))
+        asyncio.run(main(args, configuration))

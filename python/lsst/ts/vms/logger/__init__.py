@@ -26,3 +26,4 @@ except ImportError:
 
 from .collector import VMS_DEVICES, Collector
 from .s3_synchronizer import S3Synchronizer
+from .configuration import load_configuration

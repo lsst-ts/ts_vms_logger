@@ -42,7 +42,7 @@ class S3SynchronizerTestCase(unittest.IsolatedAsyncioTestCase):
 
         synchronizer = S3Synchronizer(this_script.parent, "test", "testing", 0)
 
-        await synchronizer.sync_directory_async(delete_after_sync=False)
+        await synchronizer.sync_directory(delete_after_sync=False)
 
         conn = boto3.client("s3")
         response = conn.head_object(Bucket="test", Key="testing/" + this_script.name)

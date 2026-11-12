@@ -1,0 +1,12 @@
+logger:
+  - workdir: /lsst/data
+  - h5py: true
+  - template: "${name}/%Y/%m/%d/VMS-${name}-%Y-%m_%dT%H:%M:%S.hdf"
+  - rotate: "1D"
+
+s3:
+  - endpoint: https://s3.cp.lsst.org
+  - bucket_name: rubinobs-lfa-cp
+  - prefix: VMS
+  - profile: cp
+  - delete: False
