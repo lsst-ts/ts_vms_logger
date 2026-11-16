@@ -177,7 +177,7 @@ async def main(args: typing.Any, configuration: Configuration | None, pipe: typi
         args.h5py = configuration.logger.h5py if args.h5py is None else args.h5py
         args.template = configuration.logger.template if args.template is None else args.template
         if configuration.logger.rotate is not None and args.rotate is None:
-            args.rotate = parse_duration(configuration.logger.rotate)
+            args.rotate = parse_duration(configuration.logger.rotate).to_value("sec")
 
     if args.workdir is not None:
         try:
@@ -252,7 +252,7 @@ async def main(args: typing.Any, configuration: Configuration | None, pipe: typi
                 configuration.s3.prefix,
                 args.rotate
                 if configuration.s3.time_window == ""
-                else parse_duration(configuration.s3.time_window),
+                else parse_duration(configuration.s3.time_window).to_value("sec"),
                 configuration.s3.profile,
             )
             delete_after_sync = configuration.s3.delete

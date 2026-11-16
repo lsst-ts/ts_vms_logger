@@ -78,14 +78,14 @@ class S3Synchronizer:
         bucket_name: str,
         s3_prefix: str = "",
         time_window: int = 2 * 86400,
-        profile_name: str = "default",
+        profile_name: str | None = None,
     ):
         self._base_dir = base_dir
         self._bucket_name = bucket_name
         self._s3_prefix = s3_prefix
         self._time_window = time_window
 
-        self._session = boto3.Session(profile_name=profile_name)
+        self._session = boto3.Session(profile_name=profile_name or None)
 
     def check_and_sync_file(self, local_path: Path, s3_key: str, delete_after_sync: bool) -> None:
         """

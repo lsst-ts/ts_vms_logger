@@ -5,8 +5,8 @@ logger:
   - rotate: "1D"
 
 s3:
-  - endpoint: https://s3.cp.lsst.org
-  - bucket_name: rubinobs-lfa-cp
-  - prefix: VMS
-  - profile: cp
-  - delete: False
+  endpoint: https://s3.cp.lsst.org
+  bucket_name: rubinobs-lfa-cp
+  prefix: VMS
+  profile: cp
+  delete: False
