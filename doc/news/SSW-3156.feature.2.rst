@@ -1,0 +1,1 @@
+S3 Synchronizer class - synchronizes files to AWS.

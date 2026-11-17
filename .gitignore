@@ -5,3 +5,4 @@
 .mypy.ini
 .ruff.toml
 towncrier.toml
+python/lsst/ts/vms/logger/version.py

@@ -1,0 +1,10 @@
+logger:
+  workdir: /lsst/data
+  template: "${name}/%Y/%m/%d/VMS-${name}-%Y-%m_%dT%H:%M:%S.hdf"
+  rotate: "1D"
+
+s3:
+  endpoint: https://s3.example.com
+  bucket_name: my-bucket
+  prefix: my-prefix
+  profile: my-profile
