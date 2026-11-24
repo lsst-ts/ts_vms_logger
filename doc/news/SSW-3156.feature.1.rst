@@ -1,1 +1,0 @@
-vmslogger and vms5plot scripts.
