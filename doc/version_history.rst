@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.1.1 (2026-11-24)
+===================
+
+Other Changes and Additions
+---------------------------
+
+- Fixed conda build.
+
+
 v0.1.0 (2026-11-24)
 ===================
 
